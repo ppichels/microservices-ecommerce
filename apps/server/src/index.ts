@@ -2,9 +2,8 @@ import express, { NextFunction, Request, Response } from "express";
 import cors from "cors";
 import { clerkMiddleware, getAuth } from "@clerk/express";
 import { shouldBeUser } from "./middleware/authMiddleware.js";
-import productRouter from "./routes/product.route";
-import categoryRouter from "./routes/category.route";
-import { consumer, producer } from "./utils/kafka.js";
+// import productRouter from "./routes/product.route";
+// import categoryRouter from "./routes/category.route";
 const app = express();
 app.use(
   cors({
@@ -27,8 +26,8 @@ app.get("/test", shouldBeUser, (req, res) => {
   res.json({ message: "Product service authenticated", userId: req.userId });
 });
 
-app.use("/products", productRouter);
-app.use("/categories", categoryRouter);
+// app.use("/products", productRouter);
+// app.use("/categories", categoryRouter);
 
 app.use((err: any, req: Request, res: Response, next: NextFunction) => {
   console.log(err);
@@ -39,7 +38,6 @@ app.use((err: any, req: Request, res: Response, next: NextFunction) => {
 
 const start = async () => {
   try {
-    Promise.all([await producer.connect(), await consumer.connect()]);
     app.listen(8000, () => {
       console.log("Product service is running on 8000");
     });

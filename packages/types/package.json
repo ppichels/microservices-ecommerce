@@ -8,7 +8,6 @@
   },
   "dependencies": {
     "@repo/product-db": "workspace:*",
-    "@repo/order-db": "workspace:*",
     "zod": "^4.1.9"
   },
   "devDependencies": {
