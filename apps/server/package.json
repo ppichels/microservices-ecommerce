@@ -1,5 +1,5 @@
 {
-  "name": "product-service",
+  "name": "server",
   "version": "1.0.0",
   "description": "",
   "main": "src/index.ts",
@@ -13,14 +13,17 @@
   "license": "ISC",
   "dependencies": {
     "@clerk/express": "^1.7.30",
+    "@repo/product-db": "workspace:*",
     "cors": "^2.8.5",
+    "dotenv": "^17.2.3",
     "express": "^5.0.3",
-    "@repo/product-db": "workspace:*"
+    "jsonwebtoken": "^9.0.2"
   },
   "devDependencies": {
-    "@repo/typescript-config": "workspace:*",
     "@repo/types": "workspace:*",
+    "@repo/typescript-config": "workspace:*",
     "@types/cors": "^2.8.19",
-    "@types/express": "^5.0.3"
+    "@types/express": "^5.0.3",
+    "@types/jsonwebtoken": "^9.0.10"
   }
 }

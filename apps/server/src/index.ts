@@ -1,9 +1,11 @@
 import express, { NextFunction, Request, Response } from "express";
 import cors from "cors";
-import { clerkMiddleware, getAuth } from "@clerk/express";
-import { shouldBeUser } from "./middleware/authMiddleware.js";
+
+// Routes imports
+import authRouter from "./routes/auth/register.route";
 // import productRouter from "./routes/product.route";
 // import categoryRouter from "./routes/category.route";
+
 const app = express();
 app.use(
   cors({
@@ -12,7 +14,6 @@ app.use(
   })
 );
 app.use(express.json());
-app.use(clerkMiddleware());
 
 app.get("/health", (req: Request, res: Response) => {
   return res.status(200).json({
@@ -22,12 +23,8 @@ app.get("/health", (req: Request, res: Response) => {
   });
 });
 
-app.get("/test", shouldBeUser, (req, res) => {
-  res.json({ message: "Product service authenticated", userId: req.userId });
-});
-
-// app.use("/products", productRouter);
-// app.use("/categories", categoryRouter);
+// Routes
+app.use("/auth", authRouter);
 
 app.use((err: any, req: Request, res: Response, next: NextFunction) => {
   console.log(err);
@@ -47,4 +44,4 @@ const start = async () => {
   }
 };
 
-start()
+start();
