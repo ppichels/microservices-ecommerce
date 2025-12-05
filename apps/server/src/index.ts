@@ -1,10 +1,10 @@
 import express, { NextFunction, Request, Response } from "express";
 import cors from "cors";
+import * as trpcExpress from "@trpc/server/adapters/express";
+import { appRouter } from "./trpc/router";
+import { createContext } from "./trpc/context";
 
 // Routes imports
-import authRouter from "./routes/auth/register.route";
-// import productRouter from "./routes/product.route";
-// import categoryRouter from "./routes/category.route";
 
 const app = express();
 app.use(
@@ -24,7 +24,10 @@ app.get("/health", (req: Request, res: Response) => {
 });
 
 // Routes
-app.use("/auth", authRouter);
+app.use(
+  "/trpc",
+  trpcExpress.createExpressMiddleware({ router: appRouter, createContext })
+);
 
 app.use((err: any, req: Request, res: Response, next: NextFunction) => {
   console.log(err);
