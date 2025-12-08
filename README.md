@@ -1,64 +1,4 @@
-# Turborepo starter
-
-This Turborepo starter is maintained by the Turborepo core team.
-
-## Using this example
-
-Run the following command:
-
-```sh
-npx create-turbo@latest
-```
-
-## What's inside?
-
-This Turborepo includes the following packages/apps:
-
-### Apps and Packages
-
-- `docs`: a [Next.js](https://nextjs.org/) app
-- `web`: another [Next.js](https://nextjs.org/) app
-- `@repo/ui`: a stub React component library shared by both `web` and `docs` applications
-- `@repo/eslint-config`: `eslint` configurations (includes `eslint-config-next` and `eslint-config-prettier`)
-- `@repo/typescript-config`: `tsconfig.json`s used throughout the monorepo
-
-Each package/app is 100% [TypeScript](https://www.typescriptlang.org/).
-
-### Utilities
-
-This Turborepo has some additional tools already setup for you:
-
-- [TypeScript](https://www.typescriptlang.org/) for static type checking
-- [ESLint](https://eslint.org/) for code linting
-- [Prettier](https://prettier.io) for code formatting
-
-### Build
-
-To build all apps and packages, run the following command:
-
-```
-cd my-turborepo
-
-# With [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation) installed (recommended)
-turbo build
-
-# Without [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation), use your package manager
-npx turbo build
-yarn dlx turbo build
-pnpm exec turbo build
-```
-
-You can build a specific package by using a [filter](https://turborepo.com/docs/crafting-your-repository/running-tasks#using-filters):
-
-```
-# With [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation) installed (recommended)
-turbo build --filter=docs
-
-# Without [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation), use your package manager
-npx turbo build --filter=docs
-yarn exec turbo build --filter=docs
-pnpm exec turbo build --filter=docs
-```
+# Busco
 
 ### Develop
 
@@ -88,48 +28,250 @@ yarn exec turbo dev --filter=web
 pnpm exec turbo dev --filter=web
 ```
 
-### Remote Caching
+# Proyecto --- Guía de Estructura y Estándares
 
-> [!TIP]
-> Vercel Remote Cache is free for all plans. Get started today at [vercel.com](https://vercel.com/signup?/signup?utm_source=remote-cache-sdk&utm_campaign=free_remote_cache).
+Este documento resume cómo debe organizarse el proyecto, cómo
+estructurar módulos y cómo usar tRPC, servicios y esquemas. Mantiene
+todo simple, consistente y fácil de mantener.
 
-Turborepo can use a technique known as [Remote Caching](https://turborepo.com/docs/core-concepts/remote-caching) to share cache artifacts across machines, enabling you to share build caches with your team and CI/CD pipelines.
+------------------------------------------------------------------------
 
-By default, Turborepo will cache locally. To enable Remote Caching you will need an account with Vercel. If you don't have an account you can [create one](https://vercel.com/signup?utm_source=turborepo-examples), then enter the following commands:
+## 📂 Estructura del Proyecto
 
-```
-cd my-turborepo
+    src/
+      modules/
+        auth/
+          auth.router.ts
+          auth.schema.ts
+          auth.service.ts
+          index.ts
 
-# With [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation) installed (recommended)
-turbo login
+        user/
+          user.router.ts
+          user.schema.ts
+          user.service.ts
+          index.ts
 
-# Without [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation), use your package manager
-npx turbo login
-yarn exec turbo login
-pnpm exec turbo login
-```
+      trpc/
+        context.ts
+        trpc.ts
+        router.ts
 
-This will authenticate the Turborepo CLI with your [Vercel account](https://vercel.com/docs/concepts/personal-accounts/overview).
+      db/
+        client.ts
 
-Next, you can link your Turborepo to your Remote Cache by running the following command from the root of your Turborepo:
+      external/
+        public/
+        webhook/
+        cron/
 
-```
-# With [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation) installed (recommended)
-turbo link
+      utils/
+        jwt.ts
+        hash.ts
 
-# Without [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation), use your package manager
-npx turbo link
-yarn exec turbo link
-pnpm exec turbo link
-```
+      server.ts
 
-## Useful Links
+------------------------------------------------------------------------
 
-Learn more about the power of Turborepo:
+## 🧱 Principios
 
-- [Tasks](https://turborepo.com/docs/crafting-your-repository/running-tasks)
-- [Caching](https://turborepo.com/docs/crafting-your-repository/caching)
-- [Remote Caching](https://turborepo.com/docs/core-concepts/remote-caching)
-- [Filtering](https://turborepo.com/docs/crafting-your-repository/running-tasks#using-filters)
-- [Configuration Options](https://turborepo.com/docs/reference/configuration)
-- [CLI Usage](https://turborepo.com/docs/reference/command-line-reference)
+### 1. Arquitectura por módulos
+
+Cada carpeta en `modules/` es un dominio del sistema.\
+Cada módulo siempre tiene:
+
+-   `*.router.ts` → Endpoints tRPC\
+-   `*.schema.ts` → Validación con Zod\
+-   `*.service.ts` → Lógica de negocio\
+-   `index.ts` → Export del módulo
+
+### 2. tRPC
+
+-   Los **routers no contienen lógica**.\
+-   Solo validan inputs y llaman al service.\
+-   Usar `publicProcedure` o `protectedProcedure`.
+
+### 3. Services
+
+-   Aquí va toda la lógica real.\
+-   Acceden a la DB.\
+-   No llaman routers.
+
+### 4. Zod Schemas
+
+-   Validan parámetros de entrada.\
+-   Nada de lógica dentro del schema.
+
+### 5. Cookies y Auth
+
+Para auth se usa JWT en cookie HTTPOnly:
+
+-   `ctx.res.cookie("token", token, ...)`\
+-   Cookie segura en producción\
+-   El service genera el token\
+-   El router lo guarda en cookie
+
+------------------------------------------------------------------------
+
+## 🧪 Reglas de Código
+
+-   TypeScript estricto\
+-   ESLint + Prettier\
+-   Imports absolutos (`@/modules/...`)\
+-   Nada de lógica compleja en routers\
+-   Validar todo con Zod
+
+------------------------------------------------------------------------
+
+## 🚀 Convenciones generales
+
+-   Todo nuevo módulo debe seguir el mismo formato.\
+-   Los routers deben ser cortos.\
+-   Los services deben ser muy claros.\
+-   Código legible antes que código "inteligente".\
+-   No romper la estructura sin motivo.
+
+# Project Roadmap
+
+## 🎯 Objectives
+- Build a minimal, launchable vehicle-listing MVP.
+- Add user authentication so users can create vehicle listings.
+- Create an admin verification workflow to approve/reject user-uploaded vehicles.
+- Establish a scalable architecture for future features.
+- Implement a full CI/CD workflow using Kubernetes.
+- Configure reverse proxy and PR-based deployment previews.
+- Enable automated builds, tests, and rollouts.
+
+---
+
+## 🛣️ Roadmap
+
+### **Phase 0 — Project Setup**
+- [ ] Initialize repository structure.
+- [ ] Add README, LICENSE, `.gitignore`.
+- [ ] Configure environment variables.
+- [ ] Define workspace and monorepo structure (optional).
+
+---
+
+### **Phase 1 — MVP Core**
+#### Backend
+- [ ] Vehicle endpoints:
+  - [ ] `GET /vehicles`
+  - [ ] `GET /vehicles/:id`
+- [ ] Basic user authentication:
+  - [ ] Register
+  - [ ] Login
+  - [ ] JWT or session-based auth
+  - [ ] Protected routes for vehicle creation
+- [ ] Vehicle creation workflow:
+  - [ ] `POST /vehicles` (user-created)
+  - [ ] Vehicle status field: `pending`, `approved`, `rejected`
+- [ ] Admin verification API:
+  - [ ] `PUT /admin/vehicles/:id/approve`
+  - [ ] `PUT /admin/vehicles/:id/reject`
+- [ ] Admin-only access middleware
+
+#### Frontend
+- [ ] Vehicle listing page
+- [ ] Vehicle detail page
+- [ ] User dashboard:
+  - [ ] Create vehicle
+  - [ ] View status (pending/approved/rejected)
+- [ ] Admin dashboard:
+  - [ ] Review pending vehicles
+  - [ ] Approve/reject UI
+
+---
+
+### **Phase 2 — Infrastructure Foundation**
+- [ ] Kubernetes manifests:
+  - [ ] App Deployment
+  - [ ] Service
+  - [ ] Ingress
+  - [ ] ConfigMaps
+  - [ ] Secrets
+- [ ] Reverse proxy setup (Traefik/Nginx):
+  - [ ] HTTPS (Let's Encrypt)
+  - [ ] Route frontend + backend
+  - [ ] Rewrite rules
+
+---
+
+### **Phase 3 — Authentication Architecture**
+- [ ] Add refresh tokens / sessions
+- [ ] Secure cookie-based auth (if needed)
+- [ ] Role system:
+  - [ ] `user`
+  - [ ] `admin`
+- [ ] Rate limiting for auth endpoints
+- [ ] Email verification (optional)
+- [ ] Password reset flow (optional)
+
+---
+
+### **Phase 4 — CI/CD Pipeline**
+- [ ] GitHub Actions / GitLab CI:
+  - [ ] Lint + unit tests
+  - [ ] Build images
+  - [ ] Push to registry
+- [ ] Deploy to Kubernetes:
+  - [ ] Apply manifests automatically
+  - [ ] Rolling updates
+  - [ ] Automatic rollback on crash
+- [ ] Health checks & readiness/liveness probes
+
+---
+
+### **Phase 5 — PR Deployments**
+- [ ] Ephemeral namespaces for PRs
+- [ ] Automated DNS routing per environment
+- [ ] Auto-comments on PRs with preview URLs
+- [ ] Auto-destroy PR environments after merge/close
+
+---
+
+### **Phase 6 — Post-MVP Enhancements**
+- [ ] Advanced search filters
+- [ ] Full i18n support
+- [ ] Dealer role & features
+- [ ] Subscriptions + micropayments (Stripe)
+- [ ] Admin analytics dashboard
+- [ ] Vehicle reporting system
+
+---
+
+## 🚀 Deployment Architecture Overview
+- **Reverse Proxy**: TLS termination, routing.
+- **Frontend**: Static build or Node runtime container.
+- **Backend**: API container with protected routes.
+- **Database**: PostgreSQL/MySQL external managed DB.
+- **Kubernetes Cluster**:
+  - Deployments
+  - Services
+  - Ingress
+  - Secrets / ConfigMaps
+- **CI/CD Pipeline**:
+  - Test → Build → Push → Deploy → Verify
+
+---
+
+## 📦 Tech Checklist
+- [ ] Next.js / Vue / Svelte frontend
+- [ ] Node / Laravel / Django backend
+- [ ] Docker containers
+- [ ] Kubernetes cluster
+- [ ] Traefik or Nginx reverse proxy
+- [ ] SSL certificates
+- [ ] CI workflow
+- [ ] Container registry configured
+
+---
+
+## 📘 Next Steps
+1. Implement authentication + protected vehicle creation.
+2. Add admin verification flow.
+3. Containerize services.
+4. Deploy MVP manually once.
+5. Build CI/CD automation.
+6. Add PR preview deployments.
